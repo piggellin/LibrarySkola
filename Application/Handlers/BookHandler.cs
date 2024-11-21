@@ -23,7 +23,13 @@ namespace Application.Handlers
         }
         public void Handle(CreateBookCommand command)
         {
-            var newBook = new Book { Id = _db.Books.Count + 1, Title = command.Title, AuthorId = command.AuthorId };
+            var newBook = new Book
+            {
+                Id = _db.Books.Count + 1,
+                Title = command.Title,
+                AuthorId = command.AuthorId
+            };
+
             _db.Books.Add(newBook);
         }
         public void Handle(UpdateBookCommand command)

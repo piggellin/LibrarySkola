@@ -4,13 +4,22 @@ namespace Infrastructure
 {
     public class FakeDatabase
     {
-        public List<Book> Books { get; set; } = new();
         public List<Author> Authors { get; set; } = new();
 
-        public FakeDatabase()
+        public List<Book> Books { get { return allBooksFromDb; } set { allBooksFromDb = value; } }
+
+        private static List<Book> allBooksFromDb = new List<Book>
         {
-            Authors.Add(new Author { Id = 1, Name = "Emil" });
-            Books.Add(new Book { Id = 1, Title = "Book", AuthorId = 1 });
+            new Book (1, "book1", 1),
+            new Book (2, "book2", 2),
+            new Book (3, "book3", 3),
+            new Book (4, "book4", 4)
+        };
+
+        public Book AddNewBook(Book book)
+        {
+            allBooksFromDb.Add(book);
+            return book;
         }
     }
 }
