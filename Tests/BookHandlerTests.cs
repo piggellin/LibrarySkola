@@ -2,23 +2,21 @@
 using Application.Books.Commands.DeleteBook;
 using Application.Books.Queries;
 using Infrastructure;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Tests
 {
-    [TestClass]
+    [TestFixture]
     public class BookHandlerTests
     {
         private FakeDatabase _db;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
-            // Initialiserar fake-databasen med testdata
             _db = new FakeDatabase();
         }
 
-        [TestMethod]
+        [Test]
         public async Task CanGetBookById()
         {
             var handler = new GetBookByIdQueryHandler(_db);
@@ -31,7 +29,7 @@ namespace Tests
             Assert.AreEqual("Sample Book", result.Title);
         }
 
-        [TestMethod]
+        [Test]
         public async Task CanGetAllBooks()
         {
             var handler = new GetAllBooksQueryHandler(_db);
@@ -44,7 +42,7 @@ namespace Tests
             Assert.AreEqual("Sample Book", result[0].Title);
         }
 
-        [TestMethod]
+        [Test]
         public async Task CanCreateBook()
         {
             var handler = new CreateBookCommandHandler(_db);
@@ -57,7 +55,7 @@ namespace Tests
             Assert.AreEqual("New Book", result.Title);
         }
 
-        [TestMethod]
+        [Test]
         public async Task CanDeleteBook()
         {
             var handler = new DeleteBookCommandHandler(_db);
@@ -69,16 +67,16 @@ namespace Tests
             Assert.AreEqual(0, _db.Books.Count);
         }
 
-        [TestMethod]
+        [Test]
         public async Task DeletingNonexistentBookReturnsFalse()
         {
             var handler = new DeleteBookCommandHandler(_db);
-            var command = new DeleteBookCommand { Id = 999 }; // Ogiltigt ID
+            var command = new DeleteBookCommand { Id = 999 };
 
             var result = await handler.Handle(command, CancellationToken.None);
 
             Assert.IsFalse(result);
-            Assert.AreEqual(1, _db.Books.Count); // Inga böcker ska påverkas
+            Assert.AreEqual(1, _db.Books.Count); 
         }
     }
 }

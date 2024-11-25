@@ -1,5 +1,4 @@
-﻿using Domain.Models;
-using Infrastructure;
+﻿using Infrastructure;
 using MediatR;
 
 namespace Application.Authors.Commands.DeleteAuthor
@@ -19,10 +18,8 @@ namespace Application.Authors.Commands.DeleteAuthor
 
             if (authorToDelete == null)
             {
-                return Task.FromResult(false); // Författare hittades inte
+                return Task.FromResult(false); 
             }
-
-            // Ta bort böcker som är kopplade till författaren
             _db.Books.RemoveAll(book => book.AuthorId == authorToDelete.Id);
 
             _db.Authors.Remove(authorToDelete);
