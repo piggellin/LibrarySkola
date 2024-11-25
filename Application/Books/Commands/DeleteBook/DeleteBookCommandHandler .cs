@@ -18,7 +18,7 @@ namespace Application.Books.Commands.DeleteBook
 
             if (bookToDelete == null)
             {
-                return Task.FromResult(false); // Bok hittades inte
+                return Task.FromResult(false);
             }
 
             _db.Books.Remove(bookToDelete);
