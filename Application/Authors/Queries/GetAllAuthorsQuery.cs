@@ -3,5 +3,5 @@ using MediatR;
 
 namespace Application.Authors.Queries
 {
-    public class GetAllAuthorsQuery : IRequest<List<Author>> { }
+    public class GetAllAuthorsQuery : IRequest<Result<List<Author>>> { }
 }

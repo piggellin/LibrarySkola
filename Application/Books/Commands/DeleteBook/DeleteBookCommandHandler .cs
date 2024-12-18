@@ -1,28 +1,23 @@
-﻿using Infrastructure;
+﻿using Application.Interfaces;
 using MediatR;
 
 namespace Application.Books.Commands.DeleteBook
 {
-    public class DeleteBookCommandHandler : IRequestHandler<DeleteBookCommand, bool>
+    public class DeleteBookCommandHandler : IRequestHandler<DeleteBookCommand, Result<bool>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IBookRepository _repo;
 
-        public DeleteBookCommandHandler(FakeDatabase db)
+        public DeleteBookCommandHandler(IBookRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public Task<bool> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
         {
-            var bookToDelete = _db.Books.FirstOrDefault(book => book.Id == request.Id);
-
-            if (bookToDelete == null)
-            {
-                return Task.FromResult(false);
-            }
-
-            _db.Books.Remove(bookToDelete);
-            return Task.FromResult(true);
+            var success = await _repo.DeleteAsync(request.Id);
+            return success
+                ? Result<bool>.Success(true)
+                : Result<bool>.Failure($"Book with ID {request.Id} not found.");
         }
     }
 }

@@ -37,8 +37,12 @@ public class AuthorController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateAuthor([FromBody] CreateAuthorCommand command)
     {
-        var author = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, author);
+        var result = await _mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return CreatedAtAction(nameof(GetAuthorById), new { id = result.Value.Id }, result.Value);
     }
 
     [HttpPut("{id}")]
@@ -59,6 +63,8 @@ public class AuthorController : ControllerBase
         var command = new DeleteAuthorCommand { Id = id };
         var result = await _mediator.Send(command);
 
-        return result ? NoContent() : NotFound($"Author with ID {id} not found.");
+        return result.IsSuccess
+            ? NoContent()
+            : NotFound(result.Error ?? $"Author with ID {id} not found.");
     }
 }

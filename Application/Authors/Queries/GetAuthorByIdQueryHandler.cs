@@ -1,22 +1,25 @@
-﻿using Domain.Models;
-using Infrastructure;
+﻿using Application.Interfaces;
+using Domain.Models;
 using MediatR;
 
 namespace Application.Authors.Queries
 {
-    public class GetAuthorByIdQueryHandler : IRequestHandler<GetAuthorByIdQuery, Author>
+    public class GetAuthorByIdQueryHandler : IRequestHandler<GetAuthorByIdQuery, Result<Author>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IAuthorRepository _repo;
 
-        public GetAuthorByIdQueryHandler(FakeDatabase db)
+        public GetAuthorByIdQueryHandler(IAuthorRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public Task<Author> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<Author>> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
         {
-            var author = _db.Authors.FirstOrDefault(a => a.Id == request.Id);
-            return Task.FromResult(author);
+            var author = await _repo.GetByIdAsync(request.Id);
+            if (author == null)
+                return Result<Author>.Failure($"Author with ID {request.Id} not found.");
+
+            return Result<Author>.Success(author);
         }
     }
 }
