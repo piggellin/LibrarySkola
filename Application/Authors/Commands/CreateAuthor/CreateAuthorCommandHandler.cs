@@ -1,29 +1,23 @@
-﻿using Domain.Models;
-using Infrastructure;
+﻿using Application.Interfaces;
+using Domain.Models;
 using MediatR;
 
 namespace Application.Authors.Commands.CreateAuthor
 {
-    public class CreateAuthorCommandHandler : IRequestHandler<CreateAuthorCommand, Author>
+    public class CreateAuthorCommandHandler : IRequestHandler<CreateAuthorCommand, Result<Author>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IAuthorRepository _repo;
 
-        public CreateAuthorCommandHandler(FakeDatabase db)
+        public CreateAuthorCommandHandler(IAuthorRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public Task<Author> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<Result<Author>> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
         {
-            var newAuthor = new Author
-            {
-                Id = _db.Authors.Count + 1,
-                Name = request.Name
-            };
-
-            _db.Authors.Add(newAuthor);
-
-            return Task.FromResult(newAuthor);
+            var author = new Author { Name = request.Name };
+            var created = await _repo.AddAsync(author);
+            return Result<Author>.Success(created);
         }
     }
 }

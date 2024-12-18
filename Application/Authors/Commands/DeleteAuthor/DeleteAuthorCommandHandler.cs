@@ -1,29 +1,23 @@
-﻿using Infrastructure;
+﻿using Application.Interfaces;
 using MediatR;
 
 namespace Application.Authors.Commands.DeleteAuthor
 {
-    public class DeleteAuthorCommandHandler : IRequestHandler<DeleteAuthorCommand, bool>
+    public class DeleteAuthorCommandHandler : IRequestHandler<DeleteAuthorCommand, Result<bool>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IAuthorRepository _repo;
 
-        public DeleteAuthorCommandHandler(FakeDatabase db)
+        public DeleteAuthorCommandHandler(IAuthorRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public Task<bool> Handle(DeleteAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> Handle(DeleteAuthorCommand request, CancellationToken cancellationToken)
         {
-            var authorToDelete = _db.Authors.FirstOrDefault(author => author.Id == request.Id);
-
-            if (authorToDelete == null)
-            {
-                return Task.FromResult(false); 
-            }
-            _db.Books.RemoveAll(book => book.AuthorId == authorToDelete.Id);
-
-            _db.Authors.Remove(authorToDelete);
-            return Task.FromResult(true);
+            var success = await _repo.DeleteAsync(request.Id);
+            return success
+                ? Result<bool>.Success(true)
+                : Result<bool>.Failure($"Author with ID {request.Id} not found.");
         }
     }
 }

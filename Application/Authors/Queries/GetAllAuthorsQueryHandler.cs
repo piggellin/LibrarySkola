@@ -1,21 +1,22 @@
-﻿using Domain.Models;
-using Infrastructure;
+﻿using Application.Interfaces;
+using Domain.Models;
 using MediatR;
 
 namespace Application.Authors.Queries
 {
-    public class GetAllAuthorsQueryHandler : IRequestHandler<GetAllAuthorsQuery, List<Author>>
+    public class GetAllAuthorsQueryHandler : IRequestHandler<GetAllAuthorsQuery, Result<List<Author>>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IAuthorRepository _repo;
 
-        public GetAllAuthorsQueryHandler(FakeDatabase db)
+        public GetAllAuthorsQueryHandler(IAuthorRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public Task<List<Author>> Handle(GetAllAuthorsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<List<Author>>> Handle(GetAllAuthorsQuery request, CancellationToken cancellationToken)
         {
-            return Task.FromResult(_db.Authors.ToList());
+            var authors = await _repo.GetAllAsync();
+            return Result<List<Author>>.Success(authors);
         }
     }
 }

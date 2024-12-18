@@ -1,4 +1,5 @@
-﻿using Application.Books.Commands.CreateBook;
+﻿using Application.Authors.Commands.DeleteAuthor;
+using Application.Books.Commands.CreateBook;
 using Application.Books.Commands.DeleteBook;
 using Application.Books.Commands.UpdateBook;
 using Application.Books.Queries;
@@ -37,8 +38,12 @@ public class BookController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateBook([FromBody] CreateBookCommand command)
     {
-        var book = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
+        var result = await _mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return CreatedAtAction(nameof(GetBookById), new { id = result.Value.Id }, result.Value);
     }
 
     [HttpPut("{id}")]
@@ -52,13 +57,15 @@ public class BookController : ControllerBase
         var updatedBook = await _mediator.Send(command);
         return Ok(updatedBook);
     }
-
+    
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBook(int id)
     {
         var command = new DeleteBookCommand { Id = id };
         var result = await _mediator.Send(command);
 
-        return result ? NoContent() : NotFound($"Book with ID {id} not found.");
+        return result.IsSuccess
+            ? NoContent()
+            : NotFound(result.Error ?? $"Book with ID {id} not found.");
     }
 }
