@@ -5,7 +5,7 @@ using Domain.Models;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 
-namespace Test
+namespace Test.BookTests
 {
     public class CreateBookCommandHandlerTests
     {
@@ -71,8 +71,8 @@ namespace Test
 
             var result = await _handler.Handle(command, default);
 
-            Assert.False(result.IsSuccess); 
-            Assert.Equal("Unexpected error", result.Error); 
+            Assert.False(result.IsSuccess);
+            Assert.Equal("Unexpected error", result.Error);
         }
     }
 }
