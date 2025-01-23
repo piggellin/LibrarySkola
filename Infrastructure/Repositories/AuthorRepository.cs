@@ -1,50 +1,18 @@
 ﻿using Domain.Models;
 using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Data;
 
 
 namespace Infrastructure.Repositories
 {
-    public class AuthorRepository : IAuthorRepository
+    public class AuthorRepository(RealDatabase context) : Repository<Author>(context), IAuthorRepository
     {
-        private readonly RealDatabase _context;
+        private readonly RealDatabase _context = context;
 
-        public AuthorRepository(RealDatabase context)
+        public async Task<bool> AuthorExists(string name)
         {
-            _context = context;
-        }
-
-        public async Task<Author> AddAsync(Author author)
-        {
-            _context.Author.Add(author);
-            await _context.SaveChangesAsync();
-            return author;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var author = await _context.Author.FindAsync(id);
-            if (author == null) return false;
-            _context.Author.Remove(author);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<Author>> GetAllAsync()
-        {
-            return await _context.Author.ToListAsync();
-        }
-
-        public async Task<Author> GetByIdAsync(int id)
-        {
-            return await _context.Author.FindAsync(id);
-        }
-
-        public async Task<Author> UpdateAsync(Author author)
-        {
-            _context.Author.Update(author);
-            await _context.SaveChangesAsync();
-            return author;
+            return await _context.Authors.AnyAsync(a => a.Name == name);
         }
     }
 

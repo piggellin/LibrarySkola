@@ -2,11 +2,12 @@
 using Application.Authors.Commands.DeleteAuthor;
 using Application.Authors.Commands.UpdateAuthor;
 using Application.Authors.Queries;
+using Application.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
 [Route("api/[controller]")]
+[ApiController]
 public class AuthorController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -16,55 +17,78 @@ public class AuthorController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetAuthorById(int id)
-    {
-        var query = new GetAuthorByIdQuery { Id = id };
-        var author = await _mediator.Send(query);
-
-        return author != null ? Ok(author) : NotFound($"Author with ID {id} not found.");
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllAuthors()
     {
         var query = new GetAllAuthorsQuery();
-        var authors = await _mediator.Send(query);
+        var result = await _mediator.Send(query);
 
-        return Ok(authors);
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest(result.Error); 
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetAuthorById(int id)
+    {
+        var query = new GetAuthorByIdQuery(id);
+        var result = await _mediator.Send(query);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value); 
+        }
+
+        return NotFound(result.Error); 
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateAuthor([FromBody] CreateAuthorCommand command)
+    public async Task<IActionResult> CreateAuthor([FromBody] AuthorDto authorDto)
     {
+        var command = new CreateAuthorCommand(authorDto);
         var result = await _mediator.Send(command);
 
-        if (!result.IsSuccess)
-            return BadRequest(result.Error);
+        if (result.IsSuccess)
+        {
+            return CreatedAtAction(nameof(GetAuthorById), new { id = result.Value.Id }, result.Value);
+        }
 
-        return CreatedAtAction(nameof(GetAuthorById), new { id = result.Value.Id }, result.Value);
+        return BadRequest(result.Error); 
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAuthor(int id, [FromBody] UpdateAuthorCommand command)
+    public async Task<IActionResult> UpdateAuthor(int id, [FromBody] AuthorDto authorDto)
     {
-        if (id != command.Id)
+        if (id != authorDto.Id)
         {
-            return BadRequest("ID in the URL does not match ID in the body.");
+            return BadRequest("ID mismatch");
         }
 
-        var updatedAuthor = await _mediator.Send(command);
-        return Ok(updatedAuthor);
+        var command = new UpdateAuthorCommand(authorDto);
+        var result = await _mediator.Send(command);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest(result.Error);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAuthor(int id)
     {
-        var command = new DeleteAuthorCommand { Id = id };
+        var command = new DeleteAuthorCommand(id);
         var result = await _mediator.Send(command);
 
-        return result.IsSuccess
-            ? NoContent()
-            : NotFound(result.Error ?? $"Author with ID {id} not found.");
+        if (result.IsSuccess)
+        {
+            return NoContent();
+        }
+
+        return NotFound(result.Error);
     }
 }
