@@ -4,7 +4,7 @@ using Domain.Models;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 
-namespace Test
+namespace Test.BookTests
 {
     public class GetBookByIdQueryHandlerTests
     {
@@ -23,11 +23,11 @@ namespace Test
         public async Task Handle_BookExists_ReturnsSuccess()
         {
             var bookId = 1;
-            var command = new GetBookByIdQuery(bookId); 
+            var command = new GetBookByIdQuery(bookId);
             var book = new Book { Id = bookId, Title = "Test Book", AuthorId = 1 };
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId))
-                .Returns(Task.FromResult(book)); 
+                .Returns(Task.FromResult(book));
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -46,7 +46,7 @@ namespace Test
             var command = new GetBookByIdQuery(bookId);
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId))
-                .Returns(Task.FromResult<Book>(null)); 
+                .Returns(Task.FromResult<Book>(null));
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -59,10 +59,10 @@ namespace Test
         public async Task Handle_WhenExceptionOccurs_ThrowsException()
         {
             var bookId = 1;
-            var command = new GetBookByIdQuery(bookId); 
+            var command = new GetBookByIdQuery(bookId);
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId))
-                .Throws(new Exception("Database error")); 
+                .Throws(new Exception("Database error"));
 
             await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId)).MustHaveHappenedOnceExactly();

@@ -4,7 +4,7 @@ using Domain.Models;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 
-namespace Test
+namespace Test.BookTests
 {
     public class DeleteBookCommandHandlerTests
     {
@@ -27,10 +27,10 @@ namespace Test
             var book = new Book { Id = BookId };
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(BookId))
-                .Returns(Task.FromResult(book)); 
+                .Returns(Task.FromResult(book));
 
             A.CallTo(() => _fakeRepo.DeleteAsync(BookId))
-                .Returns(Task.FromResult(true)); 
+                .Returns(Task.FromResult(true));
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -47,7 +47,7 @@ namespace Test
             var command = new DeleteBookCommand(BookId);
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(BookId))
-                .Returns(Task.FromResult<Book>(null)); 
+                .Returns(Task.FromResult<Book>(null));
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -64,7 +64,7 @@ namespace Test
             var command = new DeleteBookCommand(BookId);
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(BookId))
-                .Throws(new Exception("Database error")); 
+                .Throws(new Exception("Database error"));
 
             await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
             A.CallTo(() => _fakeRepo.GetByIdAsync(BookId)).MustHaveHappenedOnceExactly();

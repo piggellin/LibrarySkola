@@ -5,7 +5,7 @@ using Domain.Models;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 
-namespace Test
+namespace Test.BookTests
 {
     public class UpdateBookCommandHandlerTests
     {
@@ -30,7 +30,7 @@ namespace Test
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId))
                 .Returns(Task.FromResult(existingBook));
             A.CallTo(() => _fakeRepo.UpdateAsync(A<Book>.Ignored))
-                .Returns(Task.CompletedTask); 
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -50,7 +50,7 @@ namespace Test
             var command = new UpdateBookCommand(new BookDto { Id = bookId, Title = "Updated Title", AuthorId = 2 });
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId))
-                .Returns(Task.FromResult<Book>(null)); 
+                .Returns(Task.FromResult<Book>(null));
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -67,7 +67,7 @@ namespace Test
             var command = new UpdateBookCommand(new BookDto { Id = bookId, Title = "Updated Title", AuthorId = 2 });
 
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId))
-                .Throws(new Exception("Database error")); 
+                .Throws(new Exception("Database error"));
 
             await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
             A.CallTo(() => _fakeRepo.GetByIdAsync(bookId)).MustHaveHappenedOnceExactly();
