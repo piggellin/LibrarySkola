@@ -22,8 +22,6 @@ namespace Presentation
             builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
             builder.Services.AddScoped<IBookRepository, BookRepository>();
             builder.Services.AddInfrastructure(builder.Configuration.GetSection("ConnectionStrings").Value!);
-            builder.Services.AddValidatorsFromAssembly(typeof(CreateAuthorCommandValidator).Assembly);
-
 
             var app = builder.Build();
 

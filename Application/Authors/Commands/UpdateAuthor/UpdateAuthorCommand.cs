@@ -1,11 +1,15 @@
-﻿using Domain.Models;
+﻿using Application.DTOs;
 using MediatR;
 
 namespace Application.Authors.Commands.UpdateAuthor
 {
-    public class UpdateAuthorCommand : IRequest<Result<Author>>
+    public class UpdateAuthorCommand : IRequest<Result<AuthorDto>>
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        public AuthorDto Author { get; set; }
+
+        public UpdateAuthorCommand(AuthorDto author)
+        {
+            Author = author;
+        }
     }
 }

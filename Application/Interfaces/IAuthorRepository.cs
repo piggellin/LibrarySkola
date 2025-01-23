@@ -2,12 +2,8 @@
 
 namespace Application.Interfaces
 {
-    public interface IAuthorRepository
+    public interface IAuthorRepository : IRepository<Author>
     {
-        Task<Author> GetByIdAsync(int id);
-        Task<List<Author>> GetAllAsync();
-        Task<Author> AddAsync(Author author);
-        Task<bool> DeleteAsync(int id);
-        Task<Author> UpdateAsync(Author author);
+        Task<bool> AuthorExists(string name);
     }
 }

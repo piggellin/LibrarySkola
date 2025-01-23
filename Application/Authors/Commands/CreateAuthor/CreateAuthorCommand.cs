@@ -1,10 +1,16 @@
-﻿using Domain.Models;
+﻿using Application.DTOs;
+using Domain.Models;
 using MediatR;
 
 namespace Application.Authors.Commands.CreateAuthor
 {
-    public class CreateAuthorCommand : IRequest<Result<Author>>
+    public class CreateAuthorCommand : IRequest<Result<AuthorDto>>
     {
-        public string Name { get; set; }
+        public AuthorDto Author { get; set; }
+
+        public CreateAuthorCommand(AuthorDto author)
+        {
+            Author = author;
+        }
     }
 }
