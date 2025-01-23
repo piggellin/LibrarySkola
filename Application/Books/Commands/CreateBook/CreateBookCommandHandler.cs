@@ -1,30 +1,55 @@
-﻿using Domain.Models;
-using Infrastructure;
+﻿using Application.DTOs;
+using Application.Interfaces;
+using Domain.Models;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Books.Commands.CreateBook
 {
-    public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, Book>
+    public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, Result<BookDto>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IBookRepository _repo;
+        private readonly ILogger<CreateBookCommandHandler> _logger;
 
-        public CreateBookCommandHandler(FakeDatabase db)
+        public CreateBookCommandHandler(IBookRepository repo, ILogger<CreateBookCommandHandler> logger)
         {
-            _db = db;
+            _repo = repo;
+            _logger = logger;
         }
 
-        public Task<Book> Handle(CreateBookCommand request, CancellationToken cancellationToken)
+        public async Task<Result<BookDto>> Handle(CreateBookCommand request, CancellationToken cancellationToken)
         {
-            var newBook = new Book
+            try
             {
-                Id = _db.Books.Count + 1,
-                Title = request.Title,
-                AuthorId = request.AuthorId
-            };
+                if (await _repo.BookTitleExists(request.Book.Title))
+                {
+                    _logger.LogWarning("Book already exists: {BookTitle}", request.Book.Title);
+                    return Result<BookDto>.Failure("Book already exists");
+                }
 
-            _db.Books.Add(newBook);
+                var newBook = new Book
+                {
+                    Title = request.Book.Title,
+                    AuthorId = request.Book.AuthorId
+                };
 
-            return Task.FromResult(newBook);
+                await _repo.AddAsync(newBook);
+                _logger.LogInformation("Book successfully added to the database: {BookTitle}", newBook.Title);
+
+                var bookDto = new BookDto
+                {
+                    Title = newBook.Title,
+                    AuthorId = newBook.AuthorId
+                };
+
+                return Result<BookDto>.Success(bookDto, "Book successfully added to database");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while creating the book: {BookTitle}", request.Book.Title);
+                return Result<BookDto>.Failure("Unexpected error");
+            }
         }
+
     }
 }

@@ -1,29 +1,48 @@
-﻿using Domain.Models;
-using Infrastructure;
+﻿using Application.DTOs;
+using Application.Interfaces;
+using Domain.Models;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Authors.Commands.CreateAuthor
 {
-    public class CreateAuthorCommandHandler : IRequestHandler<CreateAuthorCommand, Author>
+    public class CreateAuthorCommandHandler : IRequestHandler<CreateAuthorCommand, Result<AuthorDto>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IAuthorRepository _repo;
+        private readonly ILogger<CreateAuthorCommandHandler> _logger;
 
-        public CreateAuthorCommandHandler(FakeDatabase db)
+        public CreateAuthorCommandHandler(IAuthorRepository repo, ILogger<CreateAuthorCommandHandler> logger)
         {
-            _db = db;
+            _repo = repo;
+            _logger = logger;
         }
 
-        public Task<Author> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<Result<AuthorDto>> Handle(CreateAuthorCommand request, CancellationToken cancellationToken)
         {
-            var newAuthor = new Author
+            try
             {
-                Id = _db.Authors.Count + 1,
-                Name = request.Name
-            };
+                if (await _repo.AuthorExists(request.Author.Name))
+                {
+                    return Result<AuthorDto>.Failure("Author already exists");
+                }
 
-            _db.Authors.Add(newAuthor);
+                var newAuthor = new Author { Name = request.Author.Name };
 
-            return Task.FromResult(newAuthor);
+                await _repo.AddAsync(newAuthor);
+
+                var authorDto = new AuthorDto
+                {
+                    Id = newAuthor.Id,
+                    Name = newAuthor.Name
+                };
+
+                return Result<AuthorDto>.Success(authorDto, "Author successfully added to database");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while creating the author");
+                return Result<AuthorDto>.Failure("Unexpected error");
+            }
         }
     }
 }

@@ -1,28 +1,43 @@
-﻿using Infrastructure;
+﻿using Application.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Books.Commands.DeleteBook
 {
-    public class DeleteBookCommandHandler : IRequestHandler<DeleteBookCommand, bool>
+    public class DeleteBookCommandHandler : IRequestHandler<DeleteBookCommand, Result<bool>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IBookRepository _repo;
+        private readonly ILogger<DeleteBookCommandHandler> _logger;
 
-        public DeleteBookCommandHandler(FakeDatabase db)
+        public DeleteBookCommandHandler(IBookRepository repo, ILogger<DeleteBookCommandHandler> logger)
         {
-            _db = db;
+            _repo = repo;
+            _logger = logger;
         }
 
-        public Task<bool> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
         {
-            var bookToDelete = _db.Books.FirstOrDefault(book => book.Id == request.Id);
+            _logger.LogInformation("Handling DeleteBookCommand for Book Id: {BookId}", request.BookId);
 
-            if (bookToDelete == null)
+            try
             {
-                return Task.FromResult(false);
-            }
+                var book = await _repo.GetByIdAsync(request.BookId);
+                if (book == null)
+                {
+                    _logger.LogWarning("Book not found: {BookId}", request.BookId);
+                    return Result<bool>.Failure("Book not found");
+                }
 
-            _db.Books.Remove(bookToDelete);
-            return Task.FromResult(true);
+                await _repo.DeleteAsync(request.BookId);
+                _logger.LogInformation("Book successfully deleted: {BookId}", request.BookId);
+
+                return Result<bool>.Success(true, "Book successfully deleted");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting the book: {BookId}", request.BookId);
+                throw;
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
 using Application;
+using Application.Interfaces;
+using FluentValidation;
 using Infrastructure;
+using Infrastructure.Repositories;
 namespace Presentation
 {
     public class Program
@@ -15,7 +18,10 @@ namespace Presentation
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddApplication().AddInfrastructure();
+            builder.Services.AddApplication();
+            builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+            builder.Services.AddScoped<IBookRepository, BookRepository>();
+            builder.Services.AddInfrastructure(builder.Configuration.GetSection("ConnectionStrings").Value!);
 
             var app = builder.Build();
 
@@ -26,7 +32,10 @@ namespace Presentation
                 app.UseSwaggerUI();
             }
 
+            app.UseMiddleware<ErrorHandlerMiddleware>();
+
             app.UseHttpsRedirection();
+
 
             app.UseAuthorization();
 

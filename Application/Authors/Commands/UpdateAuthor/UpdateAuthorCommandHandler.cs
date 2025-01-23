@@ -1,30 +1,52 @@
-﻿using Domain.Models;
-using Infrastructure;
+﻿using Application.DTOs;
+using Application.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Authors.Commands.UpdateAuthor
 {
-    public class UpdateAuthorCommandHandler : IRequestHandler<UpdateAuthorCommand, Author>
+    public class UpdateAuthorCommandHandler : IRequestHandler<UpdateAuthorCommand, Result<AuthorDto>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IAuthorRepository _repo;
+        private readonly ILogger<UpdateAuthorCommandHandler> _logger;
 
-        public UpdateAuthorCommandHandler(FakeDatabase db)
+        public UpdateAuthorCommandHandler(IAuthorRepository repo, ILogger<UpdateAuthorCommandHandler> logger)
         {
-            _db = db;
+            _repo = repo;
+            _logger = logger;
         }
 
-        public Task<Author> Handle(UpdateAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<Result<AuthorDto>> Handle(UpdateAuthorCommand request, CancellationToken cancellationToken)
         {
-            var authorToUpdate = _db.Authors.FirstOrDefault(author => author.Id == request.Id);
+            _logger.LogInformation("Handling UpdateAuthorCommand for Author Id: {AuthorId}", request.Author.Id);
 
-            if (authorToUpdate == null)
+            try
             {
-                throw new Exception($"Author with ID {request.Id} not found.");
+                var existingAuthor = await _repo.GetByIdAsync(request.Author.Id);
+                if (existingAuthor == null)
+                {
+                    _logger.LogWarning("Author not found: {AuthorId}", request.Author.Id);
+                    return Result<AuthorDto>.Failure("Author not found");
+                }
+
+                existingAuthor.Name = request.Author.Name;
+
+                await _repo.UpdateAsync(existingAuthor);
+                _logger.LogInformation("Author successfully updated: {AuthorId}", request.Author.Id);
+
+                var authorDto = new AuthorDto
+                {
+                    Id = existingAuthor.Id,
+                    Name = existingAuthor.Name,
+                };
+
+                return Result<AuthorDto>.Success(authorDto, "Author successfully updated");
             }
-
-            authorToUpdate.Name = request.Name;
-
-            return Task.FromResult(authorToUpdate);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the author: {AuthorId}", request.Author.Id);
+                throw;
+            }
         }
     }
 }

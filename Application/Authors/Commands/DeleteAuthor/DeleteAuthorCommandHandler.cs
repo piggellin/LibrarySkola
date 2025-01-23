@@ -1,29 +1,41 @@
-﻿using Infrastructure;
+﻿using Application.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Authors.Commands.DeleteAuthor
 {
-    public class DeleteAuthorCommandHandler : IRequestHandler<DeleteAuthorCommand, bool>
+    public class DeleteAuthorCommandHandler : IRequestHandler<DeleteAuthorCommand, Result<bool>>
     {
-        private readonly FakeDatabase _db;
+        private readonly IAuthorRepository _repo;
+        private readonly ILogger<DeleteAuthorCommandHandler> _logger;
 
-        public DeleteAuthorCommandHandler(FakeDatabase db)
+        public DeleteAuthorCommandHandler(IAuthorRepository repo, ILogger<DeleteAuthorCommandHandler> logger)
         {
-            _db = db;
+            _repo = repo;
+            _logger = logger;
         }
 
-        public Task<bool> Handle(DeleteAuthorCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> Handle(DeleteAuthorCommand request, CancellationToken cancellationToken)
         {
-            var authorToDelete = _db.Authors.FirstOrDefault(author => author.Id == request.Id);
-
-            if (authorToDelete == null)
+            try
             {
-                return Task.FromResult(false); 
-            }
-            _db.Books.RemoveAll(book => book.AuthorId == authorToDelete.Id);
+                var author = await _repo.GetByIdAsync(request.AuthorId);
+                if (author == null)
+                {
+                    _logger.LogWarning("Author not found: {AuthorId}", request.AuthorId);
+                    return Result<bool>.Failure("Author not found");
+                }
 
-            _db.Authors.Remove(authorToDelete);
-            return Task.FromResult(true);
+                await _repo.DeleteAsync(request.AuthorId);
+                _logger.LogInformation("Author successfully deleted: {AuthorId}", request.AuthorId);
+
+                return Result<bool>.Success(true, "Author successfully deleted");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting the author: {AuthorId}", request.AuthorId);
+                throw;
+            }
         }
     }
 }
