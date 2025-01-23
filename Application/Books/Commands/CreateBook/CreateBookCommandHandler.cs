@@ -30,7 +30,7 @@ namespace Application.Books.Commands.CreateBook
                 var newBook = new Book
                 {
                     Title = request.Book.Title,
-                    AuthorId = request.Book.AuthorId 
+                    AuthorId = request.Book.AuthorId
                 };
 
                 await _repo.AddAsync(newBook);
@@ -47,8 +47,9 @@ namespace Application.Books.Commands.CreateBook
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while creating the book: {BookTitle}", request.Book.Title);
-                throw;
+                return Result<BookDto>.Failure("Unexpected error");
             }
         }
+
     }
 }
