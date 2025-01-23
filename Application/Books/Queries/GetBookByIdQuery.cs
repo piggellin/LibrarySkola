@@ -5,11 +5,11 @@ namespace Application.Books.Queries
 {
     public class GetBookByIdQuery : IRequest<Result<BookDto>>
     {
-        public int BookId { get; set; }
+        public int Id { get; set; }
 
-        public GetBookByIdQuery(int Id)
+        public GetBookByIdQuery(int bookId)
         {
-            BookId = Id;
+            Id = bookId;
         }
     }
 }

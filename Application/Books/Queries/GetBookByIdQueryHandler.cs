@@ -20,10 +20,10 @@ namespace Application.Books.Queries
         {
             try
             {
-                var book = await _repo.GetByIdAsync(request.BookId);
+                var book = await _repo.GetByIdAsync(request.Id);
                 if (book == null)
                 {
-                    _logger.LogWarning("Book not found: {BookId}", request.BookId);
+                    _logger.LogWarning("Book not found: {BookId}", request.Id);
                     return Result<BookDto>.Failure("Book not found");
                 }
 
@@ -38,7 +38,7 @@ namespace Application.Books.Queries
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while retrieving the book: {BookId}", request.BookId);
+                _logger.LogError(ex, "An error occurred while retrieving the book: {BookId}", request.Id);
                 throw;
             }
         }
