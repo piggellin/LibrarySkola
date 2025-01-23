@@ -7,9 +7,9 @@ namespace Application.Books.Queries
     {
         public int BookId { get; set; }
 
-        public GetBookByIdQuery(int bookId)
+        public GetBookByIdQuery(int Id)
         {
-            BookId = bookId;
+            BookId = Id;
         }
     }
 }
